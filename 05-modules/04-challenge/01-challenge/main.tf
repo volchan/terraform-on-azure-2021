@@ -3,14 +3,14 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "2.40.0"
+      version = "2.48.0"
     }
   }
    backend "azurerm" {
     resource_group_name  = "rg-terraformstate"
     storage_account_name = "terrastatestorage2188"
     container_name       = "terraformdemo"
-    key                  = "varchallenge.terraform.tfstate"
+    key                  = "modchallenge.terraform.tfstate"
   }
 }
 
@@ -21,59 +21,42 @@ provider "azurerm" {
 
 #create resource group
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-${var.application}"
-  location = var.location
+  name     = "rg-modchallenge"
+  location = "westus2"
 }
 
 #Create virtual network
 resource "azurerm_virtual_network" "vnet" {
-  name                = "vnet-${var.application}-${azurerm_resource_group.rg.location}-001"
-  address_space       = var.vnet_address_space
+  name                = "vnet-modchallenge-${azurerm_resource_group.rg.location}-001"
+  address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 }
 
 # Create subnet
 resource "azurerm_subnet" "subnet" {
-  name                 = "snet-${var.application}-${azurerm_resource_group.rg.location}-001"
+  name                 = "snet-modchallenge-${azurerm_resource_group.rg.location}-001"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.snet_address_space
+  address_prefixes     = ["10.0.0.0/24"]
 }
 
-# Create NIC
-resource "azurerm_network_interface" "nic" {
-  name                      = "nic-${var.application}vm1-001 "
-  location                  = azurerm_resource_group.rg.location
-  resource_group_name       = azurerm_resource_group.rg.name
+module "server" {
+  source = "./modules/terraform-azure-server"
 
-  ip_configuration {
-    name                          = "niccfg-${var.application}vm1"
-    subnet_id                     = azurerm_subnet.subnet.id
-    private_ip_address_allocation = "dynamic"
-  }
-}
+  subnet_id = azurerm_subnet.subnet.id
+  resource_group_name = azurerm_resource_group.rg.name
+  location = azurerm_resource_group.rg.location
 
-# Create Virtual Machine
-resource "azurerm_windows_virtual_machine" "vm" {
-  name                  = "${var.application}vm1"
-  location              = azurerm_resource_group.rg.location
-  resource_group_name   = azurerm_resource_group.rg.name
-  network_interface_ids = [azurerm_network_interface.nic.id]
-  size                  = var.vm_size
-  admin_username        = var.admin_username
-  admin_password        = var.admin_password
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = lookup(var.storage_account_type, var.location, "Standard_LRS")
-  }
-
-  source_image_reference {
-    publisher = var.os.publisher
-    offer     = var.os.offer
-    sku       = var.os.sku
-    version   = var.os.version
+  servername = "server1"
+  vm_size = "Standard_B1s"
+  admin_username = "terraadmin"
+  admin_password = "P@ssw0rdP@ssw0rd"
+  os = {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
   }
 
 }
