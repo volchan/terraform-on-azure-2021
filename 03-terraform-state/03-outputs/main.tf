@@ -3,7 +3,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "2.40.0"
+      version = "2.48.0"
     }
   }
 }
@@ -11,6 +11,27 @@ terraform {
 #Azure provider
 provider "azurerm" {
   features {}
+}
+
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-terraexample"
+  location = "westus2"
+}
+
+#Create virtual network
+resource "azurerm_virtual_network" "vnet1" {
+  name                = "vnet-dev-${azurerm_resource_group.rg.location}-001"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+# Create subnet
+resource "azurerm_subnet" "subnet1" {
+  name                 = "snet-dev-${azurerm_resource_group.rg.location}-001"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet1.name
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 #Data Source for Shared Network Terraform State
@@ -25,11 +46,12 @@ data "terraform_remote_state" "terraformdemo" {
 
 }
 
-# Create subnet
-resource "azurerm_subnet" "app_subnet" {
-  name                 = "snet-dev-001"
-  resource_group_name  = data.terraform_remote_state.terraformdemo.outputs.rg_name
-  virtual_network_name = data.terraform_remote_state.terraformdemo.outputs.vnet_name
-  address_prefixes     = ["10.0.2.0/24"]
+output "rg_name" {
+  description = "resource group"
+  value = azurerm_resource_group.rg.name
 }
 
+output "vnet_name" {
+  description = "virtual network"
+  value = azurerm_virtual_network.vnet1.name
+}
