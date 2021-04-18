@@ -3,8 +3,14 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "2.40.0"
+      version = "2.48.0"
     }
+  }
+   backend "azurerm" {
+    resource_group_name  = "rg-terraformstate"
+    storage_account_name = "terrastatestorage2188"
+    container_name       = "terraformdemo"
+    key                  = "challenge.terraform.tfstate"
   }
 }
 
@@ -41,7 +47,7 @@ resource "azurerm_subnet" "subnet" {
 
 # Create network interface
 resource "azurerm_network_interface" "nic" {
-  name                      = "nic-01-vmterraform-dev-001 "
+  name                      = "nic-01-vmterraform-dev-001"
   location                  = azurerm_resource_group.rg.location
   resource_group_name       = azurerm_resource_group.rg.name
 
