@@ -10,51 +10,55 @@ variable "location" {
 }
 
 variable "resource_group_name" {
-    type = string
-    description = "Name of the Resource Group to deploy the Virtual Machine"
+  type        = string
+  description = "Name of the Resource Group to deploy the Virtual Machine"
 }
 
 
 variable "admin_username" {
-    type = string
-    description = "Administrator username for server"
+  type        = string
+  description = "Administrator username for server"
 }
 
 variable "admin_password" {
-    type = string
-    description = "Administrator password for server"
-    sensitive   = true
+  type        = string
+  description = "Administrator password for server"
+  sensitive   = true
 }
 
 
-variable "storage_account_type" { 
-    type = map
-    description = "Disk type Premium in Primary location Standard in DR location"
+variable "storage_account_type" {
+  type        = map(any)
+  description = "Disk type Premium in Primary location Standard in DR location"
 
-    default = {
-        westus2 = "Premium_LRS"
-        eastus = "Standard_LRS"
-    }
+  default = {
+    westus2 = "Premium_LRS"
+    eastus  = "Standard_LRS"
+  }
 }
-
 
 variable "vm_size" {
-    type = string
-    description = "Size of VM"
-    default = "Standard_B1s"
+  type        = string
+  description = "Size of VM"
+  default     = "Standard_B1s"
 }
 
 variable "os" {
-    description = "OS image to deploy"
-    type = object({
-        publisher = string
-        offer = string
-        sku = string
-        version = string
+  description = "OS image to deploy"
+  type = object({
+    publisher = string
+    offer     = string
+    sku       = string
+    version   = string
   })
-}   
+}
 
 variable "subnet_id" {
-    type = string
-    description = "ID of the subnet to assign to the Network Interface resource"
+  type        = string
+  description = "ID of the subnet to assign to the Network Interface resource"
+}
+
+variable "nsg_id" {
+  type        = string
+  description = "ID of the NSG to assign to the Network Interface resource"
 }

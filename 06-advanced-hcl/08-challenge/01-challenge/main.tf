@@ -3,14 +3,8 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "2.40.0"
+      version = "2.48.0"
     }
-  }
-   backend "azurerm" {
-    resource_group_name  = "rg-terraformstate"
-    storage_account_name = "terrastatestorage2188"
-    container_name       = "terraformdemo"
-    key                  = "modchallenge.terraform.tfstate"
   }
 }
 
@@ -41,9 +35,31 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = ["10.0.0.0/24"]
 }
 
-module "server" {
-  source = "./modules/terraform-azure-server"
 
+# Create network security group and rule
+resource "azurerm_network_security_group" "nsg" {
+  name                = "nsg-httpsallow-001"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  security_rule {
+    name                       = "HTTP-Inbound"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+# Module Server
+module "server" {
+  source = "./modules/terraform-azure-wsserver"
+  
+  nsg_id = azurerm_network_security_group.nsg.id
   subnet_id = azurerm_subnet.subnet.id
   resource_group_name = azurerm_resource_group.rg.name
   location = azurerm_resource_group.rg.location
@@ -59,4 +75,9 @@ module "server" {
     version   = "latest"
   }
 
+}
+
+output "ip" {
+  description = "IP Address of server"
+  value = module.server.pip
 }
