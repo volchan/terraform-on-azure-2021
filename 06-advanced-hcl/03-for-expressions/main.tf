@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "2.40.0"
+      version = "2.48.0"
     }
   }
 }
@@ -54,4 +54,3 @@ data "azurerm_virtual_network" "example" {
 #   value = data.azurerm_virtual_network.example[*].subnets[0]
 
 # }
-
