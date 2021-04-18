@@ -3,7 +3,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "2.40.0"
+      version = "2.48.0"
     }
   }
 }
@@ -34,4 +34,3 @@ resource "azurerm_subnet" "subnet1" {
   virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefixes     = ["10.0.0.0/24"]
 }
-
